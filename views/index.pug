@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1 Welcome to #{title}
+
+  h4 Library's data:
+
+  if error
+    p Record of the library:
+
+  ul
+    li Total Books: !{data.bookCount}
+    li Copies of Book: !{data.bookInstanceCount}
+    li Available Copies: !{data.bookInstanceAvailableCount}
+    li Total Author: !{data.authorCount}
+    li Total Genres: !{data.genreCount}

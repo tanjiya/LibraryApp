@@ -1,0 +1,13 @@
+extends ../layout
+
+block content
+
+    h3= title
+
+    ul
+        each genre in genreList
+            li 
+                a(href=genre.url) #{genre.name}
+
+        else
+            li  No Genre Has Been Listed Yet...!

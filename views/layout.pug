@@ -1,0 +1,33 @@
+doctype html
+html
+  head
+    title= title
+
+    meta(charset='utf-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no')
+
+    link(rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    div(class='container-fluid mb-4')
+      div(class='container')
+        div(class='row')
+          div(class='col')
+            nav.navbar.navbar-expand-lg.navbar-light.bg-light
+              a.navbar-brand(href='/') Library
+              button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarNavDropdown' aria-controls='navbarNavDropdown' aria-expanded='false' aria-label='Toggle navigation')
+                span.navbar-toggler-icon
+              #navbarNavDropdown.collapse.navbar-collapse
+                ul.navbar-nav
+                  li.nav-item
+                    a.nav-link(href='/book') Book
+                  li.nav-item
+                    a.nav-link(href='/author') Author
+                  li.nav-item
+                    a.nav-link(href='/genre') Genre
+                  li.nav-item
+                    a.nav-link(href='/bookinstance') Book Instance
+    div(class='container')
+      div(class='row')        
+        div(class='col')
+          block content
