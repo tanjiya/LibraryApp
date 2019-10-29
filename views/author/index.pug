@@ -2,13 +2,37 @@ extends ../layout
 
 block content
 
-  h3= title
+  .jumbotron.bg-light
+    .row
+      .col-8
+        h1= title
+      .col-4
+        p.text-right
+          a.btn.btn-sm.btn-secondary(href="/author/create") Create Author
 
-  ul
-    each author in authorList
-      li 
-        a(href=author.url) #{author.firstName} #{author.lastName}
-        |  (#{author.dateOfBirth} - #{author.dateOfDeath})
+  if authorList.length > 0
+    .row
+      .col
+        .author-list
 
-    else
-      li There is No Author in The List.
+          table.table
+            thead.thead-dark
+              tr
+                th(scope='col') #
+                th(scope='col') Author Name
+                th(scope='col')
+            tbody
+              - function getLifeSpan(author){ return author.lifeSpan; }
+                each author in authorList
+                  tr
+                    th 1
+                    td #{author.name}
+                      if author.dateOfDeath
+                        |  (#{getLifeSpan(author)})
+                    td.column-width
+                      a.btn.btn-sm.btn-outline-secondary(href="/author/" + author.url) View
+                      a.btn.btn-sm.btn-outline-secondary(href="/author/" + author.url) Edit
+                      a.btn.btn-sm.btn-outline-secondary(href="/author/" + author.url + "/delete") Delete
+
+  else
+    h3 There is No Author in The List

@@ -2,21 +2,46 @@ extends ../layout
 
 block content
 
-    h3= title
+    .jumbotron.bg-light
+        .row
+            .col-8
+                h1= title
+            .col-4
+                p.text-right
+                    a.btn.btn-sm.btn-secondary(href="/bookinstance/create") Create Book Instance
+    
+    if bookInstanceList.length > 0
+        .row
+            .col
+                .book-instance-list
+                    table.table
+                        thead.thead-dark
+                            tr
+                            th(scope='col') #
+                            th(scope='col') Book Name
+                            th(scope='col') Imprint
+                            th(scope='col') Availability
+                            th(scope='col')
+                        tbody
+                            each instance in bookInstanceList
+                                tr
+                                th 1
+                                td #{instance.book.title}
+                                td #{instance.imprint}
+                                td
+                                    if instance.status=='Available'
+                                        span.text-success #{instance.status}
+                                    else if instance.status=='Maintenance'
+                                        span.text-danger #{instance.status}
+                                    else
+                                        span.text-warning #{instance.status}
 
-    ul
-        each instance in bookInstanceList
-            li 
-                a(href=instance.url) #{instance.book.title} : #{instance.imprint} - 
-                if instance.status=='Available'
-                    span.text-success #{instance.status}
-                else if instance.status=='Maintenance'
-                    span.text-danger #{instance.status}
-                else
-                    span.text-warning #{instance.status}
-
-                if instance.status!='Available'
-                    span  (Due: #{instance.dueBackFormatted} )
-
-        else
-            li There are No Book Copies in The Library.
+                                    if instance.status!='Available'
+                                        span  (Due: #{instance.dueBackFormatted})
+                                td.column-width
+                                    a.btn.btn-sm.btn-outline-secondary(href="/bookinstance/" + instance.url) View
+                                    a.btn.btn-sm.btn-outline-secondary(href="/bookinstance/" + instance.url) Edit
+                                    a.btn.btn-sm.btn-outline-secondary(href="/bookinstance/" + instance.url) Delete
+    
+    else
+        h3 There is No Data in Book Instance

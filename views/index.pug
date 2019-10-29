@@ -1,16 +1,29 @@
 extends layout
 
 block content
-  h1 Welcome to #{title}
 
-  h4 Library's data:
+  .jumbotron.bg-light
+    h1 Welcome to #{title}
 
-  if error
-    p Record of the library:
-
-  ul
-    li Total Books: !{data.bookCount}
-    li Copies of Book: !{data.bookInstanceCount}
-    li Available Copies: !{data.bookInstanceAvailableCount}
-    li Total Author: !{data.authorCount}
-    li Total Genres: !{data.genreCount}
+  .row
+    .col-4
+      .jumbotron.bg-light.text-center
+          h4 Total Books
+          | !{data.bookCount}
+    .col-4
+      .jumbotron.bg-light.text-center
+          h4 Copies of Book
+          | !{data.bookInstanceCount}
+    .col-4
+      .jumbotron.bg-light.text-center
+          h4 Available Copies
+          | !{data.bookInstanceAvailableCount}
+  .row
+    .col-6
+      .jumbotron.bg-light.text-center
+          h4 Total Author
+          | !{data.authorCount}
+    .col-6
+      .jumbotron.bg-light.text-center
+          h4 Total Genres
+          | !{data.genreCount}

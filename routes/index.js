@@ -1,10 +1,8 @@
 // Include Express Module
-const express = require('express');
-// Include Express Router
-const router = express.Router();
+const express      = require('express'),
+    router         = express.Router(),
+    HomeController = require('../controllers/homeController'); // Include Controller
 
-// Include Controller
-var HomeController = require('../controllers/homeController');
 
 // Get Home Page of The Web Application
 router.get('/', HomeController.home);

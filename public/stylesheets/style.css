@@ -1,11 +1,16 @@
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
-
 a {
   color: #00B7FF;
 }
-
 .container-fluid {
   background: #f8f9fa;
+}
+.column-width {
+  min-width: 220px;
+  text-align: right;
+}
+.column-width a {
+  margin-left: 5px;
 }

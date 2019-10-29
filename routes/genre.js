@@ -1,25 +1,18 @@
 // Include Express Module
-const express = require('express');
-// Include Express Router
-const router = express.Router();
+const express = require('express'),
+    router    = express.Router();
 
 // Include Controller
 var GenreController = require('../controllers/genreController');
-
-// GET Request for List of All Genre
-router.get('/', GenreController.genreList);
-
-// GET Request for Single Genre
-router.get('/:id', GenreController.genreDetail);
 
 // GET Request for Creating a Genre (Form)
 router.get('/create', GenreController.genreCreateForm);
 
 // POST Request for Creating Genre 
-router.post('/create', GenreController.genreCreate);
+router.post('/create', GenreController.validate('genreCreate'), GenreController.genreCreate);
 
 // GET Request to Update Genre
-router.get('/:id/update', GenreController.genreUpdateForm);
+router.get('/:id/edit', GenreController.genreEdit);
 
 // POST Request to Update Genre
 router.post('/:id/update', GenreController.genreList);
@@ -29,5 +22,11 @@ router.get('/:id/delete', GenreController.genreDeleteForm);
 
 // POST Request to Delete Genre
 router.post('/:id/delete', GenreController.genreDelete);
+
+// GET Request for List of All Genre
+router.get('/', GenreController.genreList);
+
+// GET Request for Single Genre
+router.get('/:id', GenreController.genreDetail);
 
 module.exports = router;

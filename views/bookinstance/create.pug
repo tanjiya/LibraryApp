@@ -1,0 +1,43 @@
+extends ../layout
+
+block content
+
+    .jumbotron
+        h1=title
+
+    if errors
+        .alert.alert-danger(role='alert')
+            ul
+                each error in errors
+                    li!= error.msg
+
+    form(method='POST' action='')
+
+        div.form-group
+            label(for='book') Book:
+            select#book.form-control(type='select' placeholder='Select book' name='book' required='true')
+                - bookList.sort(function(a, b) {let textA = a.title; let textB = b.title; return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;});
+
+                each book in bookList
+                    if bookInstance
+                        option(value=book._id selected=(bookInstance.book.toString()==book._id.toString() ? 'selected' : false)) #{book.title}
+                    else
+                        option(value=book._id) #{book.title}
+            
+        div.form-group
+            label(for='imprint') Imprint:
+            input#imprint.form-control(type='text' placeholder='Publisher and Date Information' name='imprint' value=(undefined===bookInstance ? '' : bookInstance.imprint))
+
+        div.form-group
+            label(for='dueBack') Date when Book Available:
+            input#dueBack.form-control(type='date' name='dueBack' value=(undefined===bookInstance ? '' : bookInstance.dueBack))
+                    
+        div.form-group
+            label(for='status') Status:
+            select#status.form-control(type='select' placeholder='Select Book Status' name='status' required='true')
+                option(value='Maintenance') Maintenance
+                option(value='Available') Available
+                option(value='Loaned') Loaned
+                option(value='Reserved') Reserved
+
+        button.btn.btn-primary(type='submit') Submit

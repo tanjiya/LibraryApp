@@ -1,9 +1,6 @@
-//Import The Mongoose Module
-const mongoose = require('mongoose');
-// Declare Mongoose Schema
-const Schema   = mongoose.Schema;
-// Include Moment Module
-const moment = require('moment');
+const mongoose = require('mongoose'), //Import The Mongoose Module
+    Schema     = mongoose.Schema, // Declare Mongoose Schema
+    moment     = require('moment'); // Include Moment Module
 
 // Define BookInstance Schema
 const BookInstanceSchema = new Schema({
@@ -13,12 +10,14 @@ const BookInstanceSchema = new Schema({
         required: [true, 'Book is Required']
     },
     imprint: {
-        type    : String,
-        required: [true, 'Imprint is Required']
+        type     : String,
+        required : [true, 'Imprint is Required'],
+        trim     : true,
+        lowercase: true
     },
     status: {
         type    : String,
-        required: [true, 'Status is Requires'],
+        required: [true, 'Status is Required'],
         enum    : ['Available', 'Maintenance', 'Loaned', 'Reserved'],
         default : 'Maintenance'
     },
@@ -26,19 +25,20 @@ const BookInstanceSchema = new Schema({
         type   : Date,
         default: Date.now
     }
-}, { collection: 'bookinstance' }, { timestamps: true });
+}, {  collection : 'bookinstance', timestamps: true });
 
 // Virtual for BookInstance's URL
 BookInstanceSchema
-.virtual('url')
-.get(() => {
-    return '/catelog/bookinstance/' + this._id;
-});
+    .virtual('url')
+    .get(function() {
+        return this._id;
+    });
 
+// Virtual for BookInstance's dueBackFormatted
 BookInstanceSchema
-.virtual('dueBackFormatted')
-.get(function () {
-  return moment(this.dueBack).format('MMMM Do, YYYY');
-});
+    .virtual('dueBackFormatted')
+    .get(function () {
+    return moment(this.dueBack).format('MMMM Do, YYYY');
+    });
 
 module.exports = mongoose.model('BookInstance', BookInstanceSchema);

@@ -2,12 +2,33 @@ extends ../layout
 
 block content
 
-    h3= title
+    .jumbotron.bg-light
+        .row
+            .col-8
+                h1= title
+            .col-4
+                p.text-right
+                    a.btn.btn-sm.btn-secondary(href="/genre/create") Create Genre
 
-    ul
-        each genre in genreList
-            li 
-                a(href=genre.url) #{genre.name}
+    if genreList.length > 0
+        .row
+            .col
+                .genre-list
+                    table.table
+                        thead.thead-dark
+                            tr
+                            th(scope='col') #
+                            th(scope='col') Genre Name
+                            th(scope='col')
+                        tbody
+                            each genre in genreList
+                                tr
+                                th 1
+                                td #{genre.name}
+                                td.column-width
+                                    a.btn.btn-sm.btn-outline-secondary(href="/genre/" + genre.url) View
+                                    a.btn.btn-sm.btn-outline-secondary(href="/genre/" + genre.url) Edit
+                                    a.btn.btn-sm.btn-outline-secondary(href="/genre/" + genre.url) Delete
 
-        else
-            li  No Genre Has Been Listed Yet...!
+    else
+        h3 There is No Genre in The List

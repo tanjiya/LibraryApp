@@ -60,3 +60,6 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+
+// SET DEBUG=library:* & npm run devstart

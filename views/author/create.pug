@@ -1,0 +1,33 @@
+extends ../layout
+
+block content
+
+    .jumbotron.bg-light
+        h1= title
+
+    if errors
+        .alert.alert-danger(role='alert')
+            ul
+                for error in errors
+                    li!= error.msg
+
+    form(method='POST' action='')
+    
+        div.form-group
+            label(for='firstName') First Name:
+            input#firstName.form-control(type='text' placeholder='First Name' name='firstName' value=(undefined===author ? '' : author.firstName) )
+
+        div.form-group
+            label(for='lastName') Last Name:
+            input#lastName.form-control(type='text' placeholder='Last Name' name='lastName' value=(undefined===author ? '' : author.lastName))
+
+        div.form-group
+            label(for='dateOfBirth') Date of Birth:
+            input#dateOfBirth.form-control(type='date' name='dateOfBirth' value=(undefined===author ? '' : author.dateOfBirth) )
+
+        div.form-group
+            label(for='dateOfDeath') Date of Death:
+            input#dateOfDeath.form-control(type='date' name='dateOfDeath' value=(undefined===author ? '' : author.dateOfDeath) )
+
+        button.btn.btn-primary(type='submit') Submit
+        
