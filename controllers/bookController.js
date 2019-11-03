@@ -2,85 +2,27 @@
 const Book       = require('../models/book'),
     BookInstance = require('../models/bookInstance'),
     Author       = require('../models/author'),
-    Genre        = require('../models/genre'),
-    async        = require('async'); // Include Async Module
+    Genre        = require('../models/genre');
+    
 // Include Express Validator to Validate Data
-const {body, sanitizeBody, validationResult} = require('express-validator');
-
-/**
- * Display The List of All Book
- */
-exports.bookList = async(req, res, next) => {
-    try {
-        await Book.find({}).populate('author').exec((err, bookList) => {
-            if (err) return bookInstanceList;
-
-            // console.log(bookList);
-
-            res.render('./book/index', { title: 'Book List', bookList: bookList});
-        });
-
-        // res.render('./book/index', { title: 'Book List', bookList: bookList});
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-/**
- * Display The Details of a Book
- */
-exports.bookDetail = (req, res, next) => {
-    try {
-        async.parallel({
-            book: (callback) => {
-                Book.findById(req.params.id)
-                    .populate('author')
-                    .populate('genre')
-                    .exec(callback);
-            },
-            instance: (callback) => {
-                BookInstance.find({'book': req.params.id}).exec(callback);
-            }
-        }, (error, values) => {
-            if(error) return next(error);
-
-            if(values.book == null) {
-                const error = new Error('Book not Found');
-                error.status = 404;
-
-                return next(error);
-            }
-            res.render('./book/detail', {title: 'Book Details', error: error, book: values.book, bookInstance: values.instance});
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+const { body, sanitizeBody, validationResult } = require('express-validator');
 
 /**
  * Display The Form of Book Create
  */
-exports.bookCreateForm = (req, res, next) => {
+exports.bookCreateForm = async(req, res, next) => {
     try {
         // Get All Authors and Genres
-        async.parallel({
-            authors: (callback) => {
-                Author.find(callback);
-            },
-            genres: (callback) => {
-                Genre.find(callback);
-            },
-        }, (error, values) => {
-            if(error) return next(error);
+        const authors = await Author.find(),
+            genres    = await Genre.find();
     
-            res.render('./book/create', {
-                title  : 'Create Book',
-                authors: values.authors,
-                genres : values.genres
-            });
+        res.render('./book/form', {
+            title  : 'Create Book',
+            authors: authors,
+            genres : genres
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
@@ -89,31 +31,7 @@ exports.bookCreateForm = (req, res, next) => {
  */
 exports.validate = (method) => {
     switch(method) {
-        case 'bookCreate' : {
-            return [
-                // Validate Data
-                body('title', 'Title is Required')
-                    .isLength({ min:3, max:30 })
-                    .trim(),
-                body('author', 'Author is Required')
-                    .isLength({ min:3, max:30 })
-                    .trim(),
-                body('summary', 'Summary is Required')
-                    .isLength({ min:3, max:400 })
-                    .trim(),
-                body('isbn')
-                    .isLength({ min:3, max:12 })
-                    .trim(),
-
-                // Sanitize Data (using wildcard: sanitizeBody('*').escape())
-                sanitizeBody('title').escape(),
-                sanitizeBody('author').escape(),
-                sanitizeBody('summary').escape(),
-                sanitizeBody('isbn').escape(),
-            ];
-        }
-        break;
-
+        case 'bookCreate' :
         case 'bookUpdate' : {
             return [
                 // Validate Data
@@ -168,58 +86,52 @@ exports.bookCreate = [
         try {
             const errors = validationResult(req);
     
-            const book = await new Book({
+            const book = new Book({
                 title   : req.body.title,
                 author  : req.body.author,
                 summary : req.body.summary,
                 isbn    : req.body.isbn,
+                genre   : req.body.genre,
             });
     
             if (!errors.isEmpty()) {
-                async.parallel({
-                    // Get All Authors and Genres
-                    authors: (callback) => {
-                        Author.find(callback);
-                    },
-                    genres: (callback) => {
-                        Genre.find(callback);
-                    },
-                }, (error, values) => {
-                    if(error) return next(error);
+                const authors = await Author.find(),
+                    genres = await Genre.find();
     
-                    // Mark Selected Genres as Checked
-                    for (let index = 0; index < values.genres.length; index++) {
-                        if (book.genre.indexOf(values.genres[index]._id) > -1) values.genres[index].checked = 'true';
+                // Mark Selected Genres as Checked
+                for (let i = 0; i < genres.length; i++) {
+                    if (book.genre.indexOf(genres[i]._id) > -1) {
+                        genres[i].checked = 'true';
                     }
-    
-                    res.render('./book/create', {
+                }
+
+                if (authors != null && genres != null) {
+                    res.render('./book/form', {
                         title   : 'Create Book',
-                        authors : values.authors,
-                        genres  : values.genres,
+                        authors : authors,
+                        genres  : genres,
                         book    : book,
                         errors  : errors.array()
                     });
-                });
-    
-                return;
+                }
     
             } else {
-                Book.findOne({ 'title':  req.body.title}).exec((error, bookExists) => {
+                await Book.findOne({ 'title':  req.body.title }).exec((error, bookExists) => {
                     if(error) return next(error);
     
                     if (bookExists) {
                         res.redirect(bookExists.url);
                     } else {
                         book.save((error) => {
-                            if(error) return next(error);
-                            // Saved Book and Redirect to Author Detail Page.
+                            if (error) return next(error);
+
                             res.redirect('./');
                         });
                     }
                 });
             }
         } catch (error) {
-            res.status(500).json({ message: error.message });  
+            next(error);  
         }
     }
 ];
@@ -227,47 +139,37 @@ exports.bookCreate = [
 /**
  * Display The Book Update Form
  */
-exports.bookEdit = (req, res, next) => {
+exports.bookEdit = async(req, res, next) => {
     try {
-        async.parallel({
-            book: (callback) => {
-                Book.findById(req.params.id)
+        const book = await Book.findById(req.params.id)
                     .populate('author')
                     .populate('genre')
-                    .exec(callback);
-            },
-            authors: (callback) => {
-                Author.find(callback);
-            },
-            genres: (callback) => {
-                Genre.find(callback);
-            }
-        }, (error, values)  => {
-            if(error) return next(error);
+                    .exec(),
+            authors = await Author.find(),
+            genres  = await Genre.find();
+        
+        if(book === null) {
+            let error = new Error('Book not Found');
+            error.status = 404;
 
-            if(values.book === null) {
-                let error = new Error('Book not Found');
-                error.status = 404;
-
-                return next(error);
-            } else {
-                // Mark Selected Genres as Checked
-                for (let i = 0; i < values.genres.length; i++) {
-                    for (let j = 0; j < values.book.genre.length; j++) {
-                        if (values.genres[i]._id.toString() == values.book.genre[j]._id.toString()) values.genres[i].checked='true';
-                    }
+            return next(error);
+        } else {
+            // Mark Selected Genres as Checked
+            for (let i = 0; i < genres.length; i++) {
+                for (let j = 0; j < book.genre.length; j++) {
+                    if (genres[i]._id.toString() == book.genre[j]._id.toString()) genres[i].checked='true';
                 }
-
-                res.render("./book/edit", {
-                    title  : 'Update Book: ' + values.book.title,
-                    authors: values.authors,
-                    genres : values.genres,
-                    book   : values.book
-                });
             }
-        });
+
+            res.render("./book/form", {
+                title  : 'Update Book: ' + book.title,
+                authors: authors,
+                genres : genres,
+                book   : book
+            });
+        }
     } catch (error) {
-        res.status(500).json({ message: error.message }); 
+        next(error); 
     }
 };
 
@@ -277,50 +179,44 @@ exports.bookEdit = (req, res, next) => {
 exports.bookUpdate = [
     genreArray,
     async(req, res, next) => {
-        const errors = validationResult(req);
+        try {
+            const errors = validationResult(req);
 
-        const book = await new Book({
-            title  : req.body.title,
-            author : req.body.author,
-            summary: req.body.summary,
-            isbn   : req.body.isbn,
-            genre  : (typeof req.body.genre === 'undefined') ? [] : req.body.genre,
-            _id    : req.body.id
-        });
+            const book = new Book({
+                title  : req.body.title,
+                author : req.body.author,
+                summary: req.body.summary,
+                isbn   : req.body.isbn,
+                genre  : (typeof req.body.genre === 'undefined') ? []  : req.body.genre,
+                _id    : req.params.id
+            });
 
-        if(!errors.isEmpty()) {
-            async.parallel({
-                // Get All Authors and Genres
-                authors: (callback) => {
-                    Author.find(callback);
-                },
-                genres: (callback) => {
-                    Genre.find(callback);
-                },
-            }, (error, values) => {
-                if(error) return next(error);
+            if(!errors.isEmpty()) {
+                const authors = await Author.find(),
+                    genres = await Genre.find();
 
                 // Mark Selected Genres as Checked
-                for (let index = 0; index < values.genres.length; index++) {
-                    if (book.genre.indexOf(values.genres[index]._id) > -1) values.genres[index].checked = 'true';
+                for (let i = 0; i < genres.length; i++) {
+                    if (book.genre.indexOf(genres[i]._id) > -1) genres[i].checked = 'true';
                 }
 
-                res.render('./book/edit', {
-                    title  : 'Update Book: ' + values.book.title,
-                    authors : values.authors,
-                    genres  : values.genres,
+                res.render('./book/form', {
+                    title   : 'Update Book: ' + book.title,
+                    authors : authors,
+                    genres  : genres,
                     book    : book,
                     errors  : errors.array()
                 });
-            });
 
-            return;
-        } else {
-            Book.findByIdAndUpdate(req.params.id, {}, (error, book) => {
-                if(error) next(error);
+            } else {
+                await Book.findByIdAndUpdate(req.params.id, book, {}, (error, book) => {
+                    if(error) next(error);
 
-                res.redirect('./');
-            });
+                    res.redirect('./');
+                });
+            }
+        } catch (error) {
+            next(error); 
         }
     }
 ];
@@ -328,13 +224,95 @@ exports.bookUpdate = [
 /**
  * Display The Book Delete Form
  */
-exports.bookDeleteForm = (req, res, next) => {
-    res.send('Book Delete Form');
+exports.bookDeleteForm = async(req, res, next) => {
+    try {
+        const book = await Book.findById(req.params.id).exec(),
+            instance = await BookInstance.find({'book': req.params.id}).exec();
+            
+        if (book == null) {
+            res.redirect('./book');
+        } else {
+            // Successful, so render delete form.
+            res.render('./book/delete', {
+                title: 'Delete Book',
+                book: book,
+                bookInstance: instance
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
  * Handle Book Delete Request
  */
-exports.bookDelete = (req, res, next) => {
-    res.send('Book Delete');
+exports.bookDelete = async(req, res, next) => {
+    try {
+        const book = await Book.findById(req.body.bookId).exec(),
+            instance = await BookInstance.find({ 'book': req.body.bookId }).exec();
+            
+        if(instance.length > 0) {
+            res.render('./book/delete', {
+                title: 'Delete Author',
+                book: book,
+                bookInstance: instance
+            });
+        } else {
+            const deleteBook = (error) => {
+                if(error) return next(error);
+
+                res.redirect('/book');
+            };
+            await Book.findByIdAndRemove(req.body.bookId, deleteBook);
+            }
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Display The List of All Book
+ */
+exports.bookList = async(req, res, next) => {
+    try {
+        await Book.find({}).populate('author').exec((err, bookList) => {
+            if (err) return bookInstanceList;
+
+            // console.log(bookList);
+
+            res.render('./book/index', { title: 'Book List', bookList: bookList});
+        });
+
+        // res.render('./book/index', { title: 'Book List', bookList: bookList});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Display The Details of a Book
+ */
+exports.bookDetail = async(req, res, next) => {
+    try {
+        const book = await Book.findById(req.params.id)
+                    .populate('author')
+                    .populate('genre')
+                    .exec(),
+            instance = await BookInstance.find({'book': req.params.id}).exec();
+        
+        if(book == null) {
+            const error = new Error('Book not Found');
+            error.status = 404;
+            return next(error);
+        } else {
+            res.render('./book/detail', {
+                title: 'Book Details',
+                book: book,
+                bookInstance: instance
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
 };

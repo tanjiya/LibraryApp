@@ -1,4 +1,4 @@
-extends ../layout
+extends ../layout/layout
 
 block content
 
@@ -6,17 +6,16 @@ block content
     h1 Title: #{book.title}
   
   p #[strong Author:] 
-    a(href=book.author.url) #{book.author.name}
+    a(href="/author/" + book.author._id) #{book.author.name}
   p #[strong Summary:] #{book.summary}
   p #[strong ISBN:] #{book.isbn}
   p #[strong Genre:]&nbsp;
-
     each genre, index in book.genre
-      a(href=genre.url) #{genre.name}
+      a(href="/genre/" + genre._id) #{genre.name}
       if index < book.genre.length - 1
         |, 
   
-  div(style='margin-left:20px;margin-top:20px')
+  div
     h4 Copies
     
     each instance in bookInstance
@@ -30,9 +29,9 @@ block content
       p #[strong Imprint:] #{instance.imprint}
       
       if instance.status!='Available'
-        p #[strong Due back:] #{instance.due_back}
+        p #[strong Due back:] #{instance.dueBack}
       p #[strong Id:]&nbsp;
-        a(href=instance.url) #{instance._id}
- 
+        a(href="/bookinstance/" + instance._id) #{instance._id}
+  
     else
       p There Are No Copies of This Book in The Library.

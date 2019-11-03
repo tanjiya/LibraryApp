@@ -1,4 +1,4 @@
-extends layout
+extends ./layout/layout
 
 block content
 
@@ -8,22 +8,22 @@ block content
   .row
     .col-4
       .jumbotron.bg-light.text-center
-          h4 Total Books
-          | !{data.bookCount}
+        h4 Total Books
+        | !{bookCount}
     .col-4
       .jumbotron.bg-light.text-center
-          h4 Copies of Book
-          | !{data.bookInstanceCount}
+        h4 Copies of Book
+        | !{bookInstanceCount}
     .col-4
       .jumbotron.bg-light.text-center
-          h4 Available Copies
-          | !{data.bookInstanceAvailableCount}
+        h4 Available Copies
+        | !{bookInstanceAvailableCount}
   .row
     .col-6
       .jumbotron.bg-light.text-center
-          h4 Total Author
-          | !{data.authorCount}
+        h4 Total Author
+        | !{authorCount}
     .col-6
       .jumbotron.bg-light.text-center
-          h4 Total Genres
-          | !{data.genreCount}
+        h4 Total Genres
+        | !{genreCount}

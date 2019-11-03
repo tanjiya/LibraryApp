@@ -1,0 +1,18 @@
+div(class='container-fluid mb-4')
+    div(class='container')
+        div(class='row')
+            div(class='col')
+                nav.navbar.navbar-expand-lg.navbar-light.bg-light
+                    a.navbar-brand(href='/') Library
+                    button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarNavDropdown' aria-controls='navbarNavDropdown' aria-expanded='false' aria-label='Toggle navigation')
+                        span.navbar-toggler-icon
+                    #navbarNavDropdown.collapse.navbar-collapse
+                        ul.navbar-nav
+                            li.nav-item
+                                a.nav-link(href='/book') Book
+                            li.nav-item
+                                a.nav-link(href='/author') Author
+                            li.nav-item
+                                a.nav-link(href='/genre') Genre
+                            li.nav-item
+                                a.nav-link(href='/bookinstance') Book Instance

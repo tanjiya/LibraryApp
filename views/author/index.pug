@@ -1,4 +1,4 @@
-extends ../layout
+extends ../layout/layout
 
 block content
 
@@ -27,12 +27,11 @@ block content
                   tr
                     th 1
                     td #{author.name}
-                      if author.dateOfDeath
-                        |  (#{getLifeSpan(author)})
+                      |  (#{getLifeSpan(author)})
                     td.column-width
-                      a.btn.btn-sm.btn-outline-secondary(href="/author/" + author.url) View
-                      a.btn.btn-sm.btn-outline-secondary(href="/author/" + author.url) Edit
-                      a.btn.btn-sm.btn-outline-secondary(href="/author/" + author.url + "/delete") Delete
+                      a.btn.btn-sm.btn-outline-secondary(href=author.url) View
+                      a.btn.btn-sm.btn-outline-secondary(href=author.url + "/edit") Edit
+                      a.btn.btn-sm.btn-outline-secondary(href=author.url + "/delete") Delete
 
   else
     h3 There is No Author in The List

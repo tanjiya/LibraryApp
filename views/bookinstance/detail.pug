@@ -1,20 +1,21 @@
-extends ../layout
+extends ../layout/layout
 
 block content
   .jumbotron.bg-light
     h1= title
   
   p #[strong Title:] 
-    a(href=bookInstance.book.url) #{bookInstance.book.title}
+    a(href="/book/" + bookInstance.book._id) #{bookInstance.book.title}
   p #[strong Imprint:] #{bookInstance.imprint}
 
   p #[strong Status:] 
-    if bookInstance.status=='Available'
+    if bookInstance.status == 'Available'
       span.text-success #{bookInstance.status}
-    else if bookInstance.status=='Maintenance'
+    else if bookInstance.status == 'Maintenance'
       span.text-danger #{bookInstance.status}
     else
       span.text-warning #{bookInstance.status} 
       
-  if bookInstance.status!='Available'
-    p #[strong Due back:] #{bookInstance.due_back}
+  if bookInstance.status != 'Available'
+    if bookInstance.dueBack != null
+      p #[strong Due back:] #{bookInstance.dueBack}

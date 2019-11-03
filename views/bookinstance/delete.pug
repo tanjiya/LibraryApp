@@ -1,0 +1,14 @@
+extends ../layout/layout
+
+block content
+
+    .jumbotron.bg-light
+        h1 #{title}
+
+    p Do you really want to delete this Book Instance?
+    
+    form(method='POST' action='')
+        .form-group
+            input#bookInstanceId.form-control(type='hidden',name='bookInstanceId', required='true', value=bookInstance._id)
+
+        button.btn.btn-sm.btn-outline-danger(type='submit') Delete Book Instance

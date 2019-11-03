@@ -15,7 +15,7 @@ router.post('/create', AuthorController.validate('authorCreate'), AuthorControll
 router.get('/:id/edit', AuthorController.authorEdit);
 
 // POST Request to Update Author
-router.post('/:id/update', AuthorController.authorUpdate);
+router.post('/:id/edit',AuthorController.validate('authorUpdate') , AuthorController.authorUpdate);
 
 // GET Request to Delete Author
 router.get('/:id/delete', AuthorController.authorDeleteForm);

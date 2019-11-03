@@ -1,14 +1,14 @@
-extends ../layout
+extends ../layout/layout
 
 block content
 
-    .jumbotron
+    .jumbotron.bg-light
         h1= title
 
     if errors
         .alert.alert-danger(role='alert')
             ul
-                for error in errors
+                each error in errors
                     li!= error.msg 
 
     form(method='POST' action='')
@@ -21,7 +21,7 @@ block content
             label(for='author') Author:
             select#author.form-control(type='select', placeholder='Select Author' name='author' )
                 - authors.sort(function(a, b) {let textA = a.lastName.toUpperCase(); let textB = b.lastName.toUpperCase(); return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;});
-                for author in authors
+                each author in authors
                     if book
                         option(value=author._id selected=(author._id.toString()==book.author ? 'selected' : false) ) #{author.name}
                     else
@@ -38,9 +38,9 @@ block content
         div.form-group
             label Genre:
             div
-            for genre in genres
-                div(style='display: inline; padding-right:10px;')
-                    input.checkbox-input(type='checkbox', name='genre', id=genre._id, value=genre._id, checked=genre.checked )
-                    label(for=genre._id) #{genre.name}
+                each genre in genres
+                    div(style='display: inline; padding-right:10px;')
+                        input.checkbox-input(type='checkbox', name='genre', id=genre._id, value=genre._id, checked=genre.checked)
+                        label(for=genre._id) #{genre.name}
 
         button.btn.btn-primary(type='submit') Submit

@@ -1,0 +1,28 @@
+extends ../layout/layout
+
+block content
+  
+  .jumbotron.bg-light
+    h1 #{title}: #{genre.name}
+    
+  if genreBooks.length > 0
+
+    p #[strong Delete the following books before attempting to delete this genre.]
+
+    div(style='margin-left: 20px; margin-left:')
+      h4 Books
+
+    dl
+       each book in genreBooks
+        dt 
+          a(href=book.url) #{book.title}
+          dd #{book.summary}
+
+  else
+    p Do you really want to delete this Genre?
+
+    form(action='', method='POST')
+      .form-group
+        input#genreId.form-control(type='hidden', name='genreId', required='true', value=genre._id)
+        
+      button.btn.btn-sm.btn-outline-danger(type='submit') Delete Genre

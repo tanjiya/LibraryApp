@@ -1,7 +1,6 @@
 // Include Required Model
 const Genre = require('../models/genre'),
-    Book    = require('../models/book'),
-    async   = require('async'); // Include Async Module
+    Book    = require('../models/book');
 // Include Express Validator to Validate Data
 const {body, sanitizeBody, validationResult} = require('express-validator');
 
@@ -9,7 +8,7 @@ const {body, sanitizeBody, validationResult} = require('express-validator');
  * Display The Form of Genre Create
  */
 exports.genreCreateForm = (req, res, next) => {
-    res.render('./genre/create', { title: 'Create Genre' });
+    res.render('./genre/form', { title: 'Create Genre' });
 };
 
 /**
@@ -17,7 +16,8 @@ exports.genreCreateForm = (req, res, next) => {
  */
 exports.validate = (method) => {
     switch (method) {
-        case 'genreCreate': {
+        case 'genreCreate':
+        case 'genreUpdate': {
             return [
                 // Validate Data
                 body('name', 'Genre Name is Required')
@@ -29,6 +29,7 @@ exports.validate = (method) => {
                 sanitizeBody('name').escape(),
             ];
         }
+        break;
     }
 };
 
@@ -39,18 +40,18 @@ exports.genreCreate = async(req, res, next) => {
     try {
         const errors = validationResult(req);
 
-        const genre  = await new Genre({
+        const genre  = new Genre({
             name : req.body.name
         });
 
         if(!errors.isEmpty()) {
-            res.render('./genre/create', {
+            res.render('./genre/form', {
                 title : 'Create Genre',
                 genre : genre,
                 errors: errors.array()
             });
         } else {
-            Genre.findOne({ 'name': req.body.name }).exec((error, genreExists) => {
+            await Genre.findOne({ 'name': req.body.name }).exec((error, genreExists) => {
                 if(error) return next(error);
 
                 if(genreExists) {
@@ -72,29 +73,105 @@ exports.genreCreate = async(req, res, next) => {
 /**
  * Display The Genre Update Form
  */
-exports.genreEdit = (req, res, next) => {
-    res.send('Genre Update Form');
+exports.genreEdit = async(req, res, next) => {
+    try {
+        await Genre.findById(req.params.id, (error, genre) => {
+            if(error) return next(error);
+    
+            if(genre === null) {
+                let error = new Error('Genre not Found');
+                error.status = 404;
+                return next(error);
+            } else {
+                res.render('./genre/form', {
+                    title: 'Update Genre',
+                    genre: genre,
+                });
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
  * Handle Genre Update Request
  */
-exports.genreUpdate = (req, res, next) => {
-    res.send('Genre Update');
+exports.genreUpdate = async(req, res, next) => {
+    try {
+        const errors = validationResult(req);
+
+        const genre = new Genre({
+            name: req.body.name,
+            _id: req.params.id
+        });
+
+        if(!errors.isEmpty()) {
+            res.render('./genre/form', {
+                title: 'Update Genre',
+                genre: genre,
+                errors: errors.array()
+            });
+
+            return;
+        } else {
+            await Genre.findByIdAndUpdate(req.params.id, genre, {}, (error, genre) => {
+                if(error) return next(error);
+
+                res.redirect('./');
+            }); 
+        }
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
  * Display The Genre Delete Form
  */
-exports.genreDeleteForm = (req, res, next) => {
-    res.send('Genre Delete Form');
+exports.genreDeleteForm = async(req, res, next) => {
+    try {
+        const genre = await Genre.findById(req.params.id).exec(),
+            books = await Book.find({ 'book': req.params.id }).exec();
+
+        if(genre == null) res.redirect('./genre');
+
+        res.render('./genre/delete', {
+            title: "Delete Genre",
+            genre: genre,
+            genreBooks: books
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
  * Handle Genre Delete Request
  */
-exports.genreDelete = (req, res, next) => {
-    res.send('Genre Delete');
+exports.genreDelete = async(req, res, next) => {
+    try {
+        const genre = await Genre.findById(req.params.id).exec(),
+            books = await Book.find({ 'book': req.params.id }).exec();
+
+        if(books.length > 0) {
+            res.render('./genre/delete', {
+                title: 'Delete Genre',
+                genre: genre,
+                genreBooks: books
+            });
+        } else {
+            const deleteGenre = (error) => {
+                if(error) return next(error);
+
+                res.redirect('/genre');
+            };
+
+            await Genre.findByIdAndRemove(req.body.genreId, deleteGenre);
+        }
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
@@ -107,7 +184,10 @@ exports.genreList = async(req, res, next) => {
 
             // console.log(genreList);
         
-            res.render('./genre/index', { title: 'Genre List', genreList: genreList});
+            res.render('./genre/index', {
+                title: 'Genre List',
+                genreList: genreList
+            });
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -117,33 +197,24 @@ exports.genreList = async(req, res, next) => {
 /**
  * Display The Details of a Genre
  */
-exports.genreDetail = (req, res, next) => {
+exports.genreDetail = async(req, res, next) => {
     try {
-        async.parallel({
-            genre: (callback) => {
-                Genre.findById(req.params.id).exec(callback);
-            },
-            books: (callback) => {
-                Book.find({'genre': req.params.id}).exec(callback);
-            }
-        }, (error, values) => {
-            if(error) return next(error);
+        const genre = await Genre.findById(req.params.id).exec(),
+            books = await Book.find({ 'genre': req.params.id }).exec();
 
-            if(values.genre == null) {
-                const error = new Error('Genre not Found');
-                error.status = 404;
+        if(genre == null) {
+            const error = new Error('Genre not Found');
+            error.status = 404;
 
-                return next(error);
-            }
-
-            res.render('./genre/detail', {
-                title: 'Book Genre Details',
-                error: error,
-                genre: values.genre,
-                genreBooks: values.books
-            });
+            return next(error);
+        }
+        // Successful
+        res.render('./genre/detail', {
+            title: 'Book Genre Details',
+            genre: genre,
+            genreBooks: books
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };

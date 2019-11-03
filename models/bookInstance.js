@@ -31,7 +31,7 @@ const BookInstanceSchema = new Schema({
 BookInstanceSchema
     .virtual('url')
     .get(function() {
-        return this._id;
+        return 'bookinstance/' + this._id;
     });
 
 // Virtual for BookInstance's dueBackFormatted

@@ -2,13 +2,13 @@ const Author = require('../models/author'), // Include Author Model
     Book     = require('../models/book'), // Include Book Model
     async    = require('async'); // Include Async Module
 // Include Express Validator to Validate Data
-const {body, sanitizeBody, validationResult} = require('express-validator');
+const { body, sanitizeBody, validationResult } = require('express-validator');
 
 /**
  * Display The Form of Author Create 
  */
 exports.authorCreateForm = (req, res, next) => {
-    res.render('./author/create', { title: 'Create Author' });
+    res.render('./author/form', { title: 'Create Author' });
 };
 
 /**
@@ -16,7 +16,8 @@ exports.authorCreateForm = (req, res, next) => {
  */
 exports.validate = (method) => {
     switch(method) {
-        case 'authorCreate': {
+        case 'authorCreate':
+        case 'authorUpdate': {
             return [
                 // Validate Data
                 body('firstName', 'First Name is Required')
@@ -51,7 +52,7 @@ exports.authorCreate = async(req, res, next) => {
     try {
         const errors = validationResult(req);
 
-        var author = await new Author({
+        var author = new Author({
             firstName   : req.body.firstName,
             lastName    : req.body.lastName,
             dateOfBirth : req.body.dateOfBirth,
@@ -59,13 +60,13 @@ exports.authorCreate = async(req, res, next) => {
         });
 
         if(!errors.isEmpty()) {
-            res.render('./author/create', {
+            res.render('./author/form', {
                 title : 'Create Author',
                 author: author,
                 errors: errors.array()
             });
         } else {
-            Author.findOne({ 'firstName': req.body.firstName, 'lastName': req.body.lastName}).exec((error, authorExists) => {
+            await Author.findOne({ 'firstName': req.body.firstName, 'lastName': req.body.lastName}).exec((error, authorExists) => {
                 if(error) return next(error);
 
                 if (authorExists) {
@@ -80,81 +81,115 @@ exports.authorCreate = async(req, res, next) => {
             });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 /**
  * Display The Author Update Form
  */
-exports.authorEdit = (req, res, next) => {
-    res.send('Author Update Form');
+exports.authorEdit = async(req, res, next) => {
+    try {
+        await Author.findById(req.params.id, (error, author) => {
+            if(error) return next(error);
+    
+            if(author == null) {
+                let error = new Error('Author not Found');
+                error.status = 404;
+                return next(error);
+            }
+    
+            res.render('./author/form', {
+                title: "Update Author",
+                author: author,
+            });
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
  * Handle Author Update Request
  */
-exports.authorUpdate = (req, res, next) => {
-    res.send('Author Update');
+exports.authorUpdate = async(req, res, next) => {
+    try {
+        const errors = validationResult(req);
+
+        const author = new Author({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            dateOfBirth: req.body.dateOfBirth,
+            dateOfdeath: req.body.dateOfdeath,
+            _id: req.params.id,
+        });
+
+        if(!errors.isEmpty()) {
+            res.render('./author/form', {
+                title: 'Update Author',
+                author: author,
+                errors: errors.array()
+            });
+        } else {
+            await Author.findByIdAndUpdate(req.params.id, author, {}, (error, author) => {
+                if(error) return next(error);
+
+                res.redirect('./');
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
 };
 
 /**
  * Display The Author Delete Form
  */
-exports.authorDeleteForm = (req, res, next) => {
-    async.parallel({
-        author: function(callback) {
-            Author.findById(req.params.id).exec(callback);
-        },
-        authorBooks: function(callback) {
-          Book.find({ 'author': req.params.id }).exec(callback);
-        },
-    }, function(err, results) {
-        if (err) { return next(err); }
-        if (results.author==null) { // No results.
-            res.redirect('/catalog/authors');
+exports.authorDeleteForm = async(req, res, next) => {
+    try {
+        const author = await Author.findById(req.params.id).exec(),
+            authorBooks = await Book.find({ 'author': req.params.id }).exec();
+        
+        if (author == null) {
+            res.redirect('./author');
+        } else {
+            // Successful, so render delete form.
+            res.render('./author/delete', {
+                title: 'Delete Author',
+                author: author,
+                authorBooks: authorBooks
+            });
         }
-        // Successful, so render.
-        res.render('./author/delete', {
-            title: 'Delete Author',
-            author: results.author,
-            author_books: results.authorBooks
-        });
-    });
+    } catch (error) {
+        next (error);
+    }
 };
 
 /**
  * Handle Author Delete Request
  */
-exports.authorDelete = (req, res, next) => {
+exports.authorDelete = async(req, res, next) => {
     try {
-        async.parallel({
-            author: (callback) => {
-                Author.findById(req.body.authorId).exec(callback);
-            },
-            books: (callback) => {
-                Book.find({ 'author': req.body.authorId }).exec(callback);
-            }
-        }, (error, values) => {
-            if(error) return next(error);
+        const author = await Author.findById(req.params.id).exec(),
+            books = await Book.find({ 'author': req.params.id }).exec();
 
-            if(values.books.length > 0) {
-                res.render('./author/delete', {
-                    title: 'Delete Author',
-                    author: values.author,
-                    authorBooks: values.books
-                });
-            } else {
-                const deleteAuthor = (error) => {
-                    if(error) return next(error);
+        if(authorBooks.length > 0) {
+            res.render('./author/delete', {
+                title: 'Delete Author',
+                author: author,
+                authorBooks: books
+            });
+        } else {
+            const deleteAuthor = (error) => {
+                if(error) return next(error);
 
-                    res.redirect('/author');
-                };
-                Author.findByIdAndRemove(req.body.authorId, deleteAuthor);
-            }
-        });
+                res.redirect('/author');
+            };
+
+            await Author.findByIdAndRemove(req.body.authorId, deleteAuthor);
+        }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
@@ -163,39 +198,42 @@ exports.authorDelete = (req, res, next) => {
  */
 exports.authorList = async(req, res, next) => {
     try {
-        await Author.find({}).exec((error, authorList) => {
-            if(error) return authorList;
+        await Author.find({}).exec((error, list) => {
+            if(error) return list;
 
-            // console.log(authorList);
+            // console.log(list);
 
-            res.render('./author/index', { title: 'Author List', authorList: authorList});
+            res.render('./author/index', {
+                title: 'Author List',
+                authorList: list
+            });
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 /**
  * Display The Details of a Author
  */
-exports.authorDetail = (req, res, next) => {
-    async.parallel({
-        author: (callback) => {
-            Author.findById(req.params.id).exec(callback);
-        },
-        books: (callback) => {
-            Book.find({ 'author': req.params.id }).exec(callback);
-        }
-    }, (error, values) => {
-        if(error) return next(error);
-
-        if(values.author == null) {
-            const error = new Error('Author not Found');
-            error.status = 404;
-
-            return next(error);
-        }
-
-        res.render('./author/detail', {title: 'Author Detail', author: values.author, authorBooks: values.books});
-    });
+exports.authorDetail = async(req, res, next) => {
+    try {
+        const author = await Author.findById(req.params.id).exec(),
+            books = await Book.find({ 'author': req.params.id }).exec();
+    
+            if(author == null) {
+                const error = new Error('Author not Found');
+                error.status = 404;
+    
+                return next(error);
+            }
+    
+            res.render('./author/detail', {
+                title: 'Author Detail',
+                author: author,
+                authorBooks: books
+            });
+    } catch (error) {
+        next(error);
+    }
 };

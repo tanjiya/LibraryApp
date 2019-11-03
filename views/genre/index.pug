@@ -1,4 +1,4 @@
-extends ../layout
+extends ../layout/layout
 
 block content
 
@@ -26,9 +26,9 @@ block content
                                 th 1
                                 td #{genre.name}
                                 td.column-width
-                                    a.btn.btn-sm.btn-outline-secondary(href="/genre/" + genre.url) View
-                                    a.btn.btn-sm.btn-outline-secondary(href="/genre/" + genre.url) Edit
-                                    a.btn.btn-sm.btn-outline-secondary(href="/genre/" + genre.url) Delete
+                                    a.btn.btn-sm.btn-outline-secondary(href=genre.url) View
+                                    a.btn.btn-sm.btn-outline-secondary(href=genre.url + "/edit") Edit
+                                    a.btn.btn-sm.btn-outline-secondary(href=genre.url + "/delete") Delete
 
     else
         h3 There is No Genre in The List

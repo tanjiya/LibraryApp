@@ -15,7 +15,7 @@ router.post('/create', GenreController.validate('genreCreate'), GenreController.
 router.get('/:id/edit', GenreController.genreEdit);
 
 // POST Request to Update Genre
-router.post('/:id/update', GenreController.genreList);
+router.post('/:id/edit',GenreController.validate('genreUpdate') , GenreController.genreUpdate);
 
 // GET Request to Delete Genre
 router.get('/:id/delete', GenreController.genreDeleteForm);

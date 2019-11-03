@@ -39,7 +39,7 @@ const BookSchema = new Schema({
 BookSchema
     .virtual('url')
     .get(function() {
-        return this._id;
+        return 'book/' + this._id;
     });
 
 module.exports = mongoose.model('Book', BookSchema);

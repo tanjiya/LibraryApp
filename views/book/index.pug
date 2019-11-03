@@ -1,4 +1,4 @@
-extends ../layout
+extends ../layout/layout
 
 block content
 
@@ -26,9 +26,9 @@ block content
                                 th 1
                                 td #{book.title}
                                 td.column-width
-                                    a.btn.btn-sm.btn-outline-secondary(href="/book/" + book.url) View
-                                    a.btn.btn-sm.btn-outline-secondary(href="/book/" + book.url + "/edit") Edit
-                                    a.btn.btn-sm.btn-outline-secondary(href="/book/" + book.url) Delete
+                                    a.btn.btn-sm.btn-outline-secondary(href=book.url) View
+                                    a.btn.btn-sm.btn-outline-secondary(href=book.url + "/edit") Edit
+                                    a.btn.btn-sm.btn-outline-secondary(href=book.url + "/delete") Delete
 
     else
         h3 There is No Book in The List

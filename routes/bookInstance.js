@@ -15,7 +15,7 @@ router.post('/create', BookInstanceController.validate('bookInstanceCreate'), Bo
 router.get('/:id/edit', BookInstanceController.bookInstanceEdit);
 
 // POST Request to Update BookInstance
-router.post('/:id/update', BookInstanceController.bookInstanceList);
+router.post('/:id/edit', BookInstanceController.validate('bookInstanceUpdate'), BookInstanceController.bookInstanceUpdate);
 
 // GET Request to Delete BookInstance
 router.get('/:id/delete', BookInstanceController.bookInstanceDeleteForm);

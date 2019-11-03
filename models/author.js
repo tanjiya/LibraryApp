@@ -54,16 +54,18 @@ AuthorSchema
 AuthorSchema
     .virtual('lifeSpan')
     .get(function() {
-        const lifeSpan = (this.dateOfDeath.getFullYear() - this.dateOfBirth.getFullYear()).toString();
+        if(this.dateOfDeath != null && this.dateOfBirth != null){
+            const lifeSpan = (this.dateOfDeath.getFullYear() - this.dateOfBirth.getFullYear()).toString();
         
-        return lifeSpan;
+            return lifeSpan;
+        }
     });
 
 // Virtual for Author's URL
 AuthorSchema
     .virtual('url')
     .get(function() {
-        return this._id;
+        return 'author/' + this._id;
     });
 
 module.exports = mongoose.model('Author', AuthorSchema);
